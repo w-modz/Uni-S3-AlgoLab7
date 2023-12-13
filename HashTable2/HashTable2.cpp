@@ -175,6 +175,17 @@ public:
 			for (int j = 0; j < old_table[i].size(); j++)
 			{
 				Insert(old_table[i][j].key, old_table[i][j].value);
+
+				//Node<T> new_pair = old_table[i][j];
+				//int hashc = Hash(old_table[i][j].key);
+				//if (table[hashc].size() == 0)
+				//{
+				//	// in case of empty vector
+				//	table[hashc].push_back(new_pair);
+				//	occupied_size++;
+				//}
+				//// in case of no identical keys
+				//table[hashc].push_back(new_pair);
 			}
 		}
 		old_table.clear();
