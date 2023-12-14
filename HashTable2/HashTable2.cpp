@@ -1,3 +1,6 @@
+// ALGO2 IS1 221A LAB06
+// Wiktor Modzelewski
+// mw53766@zut.edu.pl
 #include <iostream>
 #include <string>
 #include <array>
@@ -11,7 +14,7 @@
 using namespace std;
 
 #define DEFAULT_SIZE 10
-#define EXPANSION_MULTIPLIER 2
+#define EXPANSION_MULTIPLIER 10
 
 template<typename T>
 struct Node
@@ -27,12 +30,14 @@ public:
 	vector<vector<Node<T>>> table;
 	uint32_t occupied_size;
 	uint32_t max_size;
+	uint32_t elements_count;
 
 public:
 	HashTable()
 	{
 		max_size = DEFAULT_SIZE;
 		occupied_size = 0;
+		elements_count = 0;
 		table.resize(max_size);
 	}
 
@@ -40,12 +45,13 @@ public:
 	{
 		Clear();
 		max_size = 0;
+		elements_count = 0;
 		occupied_size = 0;
 	}
 
 	void Insert(string key, T value)
 	{
-		if (((double)occupied_size + 1) / max_size >= RESIZE_THRESHHOLD)
+		if (((double)elements_count + 1) / max_size >= RESIZE_THRESHHOLD)
 		{
 			Rehash();
 		}
@@ -55,6 +61,7 @@ public:
 		{
 			// in case of empty vector
 			table[hashc].push_back(new_pair);
+			elements_count++;
 			occupied_size++;
 			return;
 		}
@@ -69,6 +76,7 @@ public:
 		}
 		// in case of no identical keys
 		table[hashc].push_back(new_pair);
+		elements_count++;
 		return;
 	}
 
@@ -88,8 +96,9 @@ public:
 	{
 		if (Find(key) != NULL && table[Hash(key)].size() == 1)
 		{
-			table[Hash(key)].erase(table[Hash(key)].begin(), table[Hash(key)].begin());
+			table[Hash(key)].erase(table[Hash(key)].begin());
 			occupied_size--;
+			elements_count--;
 			return true;
 		}
 		else if (Find(key) != NULL && table[Hash(key)].size() > 1)
@@ -101,6 +110,7 @@ public:
 					Node<T>* last = &table[Hash(key)].back();
 					table[Hash(key)][i] = *last;
 					table[Hash(key)].pop_back();
+					elements_count--;
 				}
 			}
 			table[Hash(key)].shrink_to_fit();
@@ -117,6 +127,7 @@ public:
 		table.erase(table.begin(),table.end());
 		table.resize(max_size);
 		occupied_size = 0;
+		elements_count = 0;
 	}
 
 	void PrintState(bool short_notation = true)
@@ -132,7 +143,7 @@ public:
 				if (table[i].size() > 0)
 				{
 					printf("[%i]", i);
-					printf(" {%s, %d} ", table[i][j].key.c_str(), table[i][j].value);
+					printf(" {%s, %s} ", table[i][j].key.c_str(), table[i][j].value.c_str());
 				}
 			}
 			if (table[i].size() > 0)
@@ -149,16 +160,14 @@ public:
 		printf("\n");
 	}
 
-	int Hash(string key)
+	uint32_t Hash(string key)
 	{
-		int hash_value = 0;
-		int length = key.length();
-		for (int i = 0; i < length; i++)
+		uint32_t hash_value = 0;
+		uint32_t length = key.length();
+		for (uint32_t i = 0; i < length; i++)
 		{
-			//hash_value += (int)key[i] * pow(31, length - (i));
-			hash_value = hash_value * 31 + (int)key[i];
+			hash_value = hash_value * 31 + key[i];
 		}
-		//return (max_size + (hash_value % max_size)) % max_size;
 		return hash_value % max_size;
 	}
 
@@ -169,23 +178,13 @@ public:
 		max_size *= EXPANSION_MULTIPLIER;
 		table.resize(max_size);
 		occupied_size = 0;
+		elements_count = 0;
 
 		for (int i = 0; i < old_table.size(); i++)
 		{
 			for (int j = 0; j < old_table[i].size(); j++)
 			{
 				Insert(old_table[i][j].key, old_table[i][j].value);
-
-				//Node<T> new_pair = old_table[i][j];
-				//int hashc = Hash(old_table[i][j].key);
-				//if (table[hashc].size() == 0)
-				//{
-				//	// in case of empty vector
-				//	table[hashc].push_back(new_pair);
-				//	occupied_size++;
-				//}
-				//// in case of no identical keys
-				//table[hashc].push_back(new_pair);
 			}
 		}
 		old_table.clear();
@@ -206,16 +205,12 @@ public:
 			{
 				longest_vector = table[i].size();
 			}
-			for (int j = 0; j < table[i].size(); j++)
-			{
-				pair_amount++;
-			}
 		}
 		average_lenght = average_lenght / max_size;
 		printf("Hash Table Statistics\n");
 		printf("----------------------------\n");
 		printf("Amount of non-empty lists: %i\n",non_empty_vectors);
-		printf("Amount of pairs in table: %i\n",pair_amount);
+		printf("Amount of pairs in table: %i\n",elements_count);
 		printf("Average list lenght: %lf\n", average_lenght);
 		printf("Longest list lenght: %i\n\n", longest_vector);
 	}
@@ -234,74 +229,17 @@ string GenerateRandomString(int length)
 
 int main()
 {
-	//HashTable<int>* ht = new HashTable<int>;
-	////printf("%d\n",ht->Hash("a"));
-	////ht->Insert("abcdef", 10);
-	////ht->Insert("abcdef", 12);
-	////printf("%s %d\n", ht->table[ht->Hash("abcdef")][0].key.c_str(), ht->table[ht->Hash("abcdef")][0].value);
-	////////ht->Find("abcdef");
-	////printf("%s %d\n", ht->Find("abcdef")->key.c_str(), ht->Find("abcdef")->value);
-	////printf("%d \n", ht->Find("a"));
-
-	////////printf("%s",ht->ToString(1));
-
-
-	////printf("%d \n", ht->Delete("a"));
-	////printf("%d \n", ht->Delete("abcdef"));
-
-	/*ht->Insert("abcdef", 1);
-	ht->Insert("dsadas", 2);
-	ht->Insert("afdgds", 3);
-	ht->Insert("shudus", 4);
-	ht->Insert("jsdkjd", 5);
-	ht->Insert("dsajjj", 6);
-	ht->Insert("uyhjmk", 7);
-	ht->Insert("hdufhu", 8);
-	ht->Insert("dkjjdd", 9);
-	ht->Insert("dmmdmm", 10);
-	ht->Insert("dsaijd", 11);
-	ht->Insert("jdsndd", 12);
-	ht->Insert("a", 13);
-	ht->Insert("b", 14);
-	ht->Insert("x", 15);
-	ht->Insert("c", 16);
-	ht->Insert("s", 17);
-	ht->Insert("sa", 18);
-	ht->Insert("aaaa", 19);
-	ht->Insert("dsadsa", 20);
-	ht->Insert("kkkkkk", 21);*/
-	///*for (int i = 0; i < ht->table[ht->Hash("abcdef")].size(); i++)
-	//{
-	//	printf("%s %d\n", ht->table[ht->Hash("abcdef")][i].key.c_str(), ht->table[ht->Hash("abcdef")][i].value);
-	//}*/
-	/*for (int i = 0; i < ht->table.size(); i++)
-	{
-		printf("[%i]",i);
-		for (int j = 0; j < ht->table[i].size(); j++)
-		{
-			printf(" {%s, %d} ",ht->table[i][j].key.c_str(), ht->table[i][j].value);
-		}
-		printf("\n");
-	}*/
-	/*ht->PrintState(true);
-	ht->PrintStats();
-
-	ht->Clear();*/
-	/*srand(time(0));
-	for (size_t i = 0; i < 10; i++)
-	{
-		printf("%s\n",GenerateRandomString(6).c_str());
-	}*/
 	srand(time(0));
-	const int MAX_ORDER = 6; // m a k s y m a l n y rzad wielkosci d o d a w a n y c h danych
-	HashTable<int>* ht = new HashTable <int>(); // w tym p r z y k l a d z i e tablica m i e s z a j a c a par < string ,
+	const int MAX_ORDER = 7; // m a k s y m a l n y rzad wielkosci d o d a w a n y c h danych
+	HashTable<string>* ht = new HashTable <string>(); // w tym p r z y k l a d z i e tablica m i e s z a j a c a par < string ,
 		for (int o = 1; o <= MAX_ORDER; o++)
 		{
 			const int n = pow(10, o); // rozmiar danych
 			// dodawanie do tablicy m i e s z a j a c e j
 			clock_t t1 = clock();
-				for (int i = 0; i < n; i++)
-					ht->Insert(GenerateRandomString(6), i); // klucze losowe 6 - znakowe , a jako wartosci indeks petli
+			for (int i = 0; i < n; i++)
+				ht->Insert(GenerateRandomString(6), GenerateRandomString(128)); // klucze losowe 6 - znakowe , a jako wartosci indeks petli
+				//GenerateRandomString(6);
 			clock_t t2 = clock();
 
 			std::cout << "HT state: " << "\n";
@@ -314,7 +252,7 @@ int main()
 			t1 = clock();
 			for (int i = 0; i < m; i++)
 			{
-				Node<int>* entry = ht -> Find(GenerateRandomString(6)); // w y s z u k i w a n i e wg losowego klucza
+				auto* entry = ht -> Find(GenerateRandomString(6)); // w y s z u k i w a n i e wg losowego klucza
 				if (entry != NULL)
 					hits++;
 			}
